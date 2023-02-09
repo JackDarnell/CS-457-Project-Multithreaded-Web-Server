@@ -9,38 +9,74 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((server_ip, server_port))
 server_socket.listen()
 
-connection_socket, addr = server_socket.accept()
+def sendMessage(responseLines, content):
+    connection_socket.send(responseLines.encode('ascii'))
+    connection_socket.send(content)
+    connection_socket.send("\r\n\r\n".encode('ascii'))
+    connection_socket.close()
+
+def send404():
+    print("\nfile not found, responding with a 404\n")
+    responseLines = "HTTP/1.1 404 Not Found\r\n"
+    responseLines += "Connection: close\r\n"
+    responseLines += "Content-Type: text/html\r\n\r\n"
+    content = open("./content/404.html", 'rb').read()
+    sendMessage(responseLines, content)
+
+while True:
+    print("\nloop start\n")
+    connection_socket, addr = server_socket.accept()
+
+    msg1 = connection_socket.recv(buffer_size).decode('ascii')
+
+    request = msg1.partition('\n')[0]
+    fileRequested = request.split(' ')[1]
+    fileRequested = fileRequested.split('/', 1)[1]
+
+    #if the file requested is the stop command, break out of the loop
+    if(fileRequested == "stop"):
+        print("\nstop command received, breaking out of loop\n")
+        break
+
+    fileRequested = "./content/"+fileRequested
+
+    contentType="error"
+
+    try:
+        contentType = fileRequested.split('.')[2]
+    except:
+        print("\nno content type found\n")
+
+    print("\ncontent type: " + contentType)
+
+    if(contentType == "html"):
+        contentType = "text/html"
+    elif(contentType == "jpeg"):
+        contentType = "image/jpeg"
+    elif(contentType == "jpg"):
+        contentType = "image/jpeg"
+    elif(contentType == "png"):
+        contentType = "image/png"
+    elif(contentType == "txt"):
+        contentType = "text/plain"
 
 
-msg1 = connection_socket.recv(buffer_size).decode('ascii')
+    print("file requested: " + fileRequested)
 
-request = msg1.partition('\n')[0]
-fileRequested = request.split(' ')[1]
-fileRequested = fileRequested.split('/')[-1]
+    if(os.path.isfile(fileRequested) and contentType != "error"):
+        print("\nfile found\n")
+        responseLines = "HTTP/1.1 200 OK\r\n"
+        responseLines += "Connection: close\r\n"
+        responseLines += "Content-Type: " + contentType + "\r\n\r\n"
+        content = open(fileRequested, 'rb').read()
+        sendMessage(responseLines, content)
+    else:
+        send404()
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-
-newFile = None
-fileFound = False
-for root, dirs, files in os.walk(dir_path):
-    for file in files:
-        if file == fileRequested:
-            print("FIle Found: " + file + " dir path: " + dir_path + " root: " + root)
-            print("\nthis is what i think " + root + "/" + file)
-            fileFound = True
-            newFile = open((root + "/" + file), 'w')
-
-print(newFile)
-if fileFound:
-    #form message, would prob work better as a function but whatever
-    statusLine = "HTTP/1.1 200 OK\r\n\r\n"
-    body = newFile
-    message = statusLine + body
-    #msg = "HTTP/1.1 200 OK\r\nConnection: close\r\nContent-Type: text/html\r\n" + "Content-Length: " + str(os.path.getsize(fileRequested)) + open(fileRequested) + "\r\n\r\n"
-    connection_socket.send(message.encode('ascii'))
-else:
-    connection_socket.send("HTTP/1.1 404 Not Found\r\n\r\n".encode('ascii'))
-
-
-connection_socket.close()
+print("\nServer no longer running\n")
+responseLines = "HTTP/1.1 200 OK\r\n"
+responseLines += "Connection: close\r\n"
+responseLines += "Content-Type: text/html" + "\r\n\r\n"
+content = open("./content/serverDoneRunning.html", 'rb').read()
+sendMessage(responseLines, content)
 server_socket.close()
