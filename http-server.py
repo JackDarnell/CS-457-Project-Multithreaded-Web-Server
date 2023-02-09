@@ -34,7 +34,8 @@ while True:
     fileRequested = fileRequested.split('/', 1)[1]
 
     #if the file requested is the stop command, break out of the loop
-    if(fileRequested == "stop"):
+    testStop = fileRequested[-4:]
+    if(testStop == "stop"):
         print("\nstop command received, breaking out of loop\n")
         break
 
