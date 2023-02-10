@@ -1,9 +1,7 @@
 
-#MULTITHREADING
-#I'm thinking one thread that constantly listens for new connections
-#and then spawns a new thread for each connection
-
+#written by: Jack Darnell
 import socket, os
+from _thread import *
 
 server_ip = 'localhost'
 server_port = 1699
@@ -12,25 +10,10 @@ buffer_size = 1000024
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind((server_ip, server_port))
 server_socket.listen()
+shouldStop = [False]
 
-def sendMessage(responseLines, content):
-    connection_socket.send(responseLines.encode('ascii'))
-    connection_socket.send(content)
-    #connection_socket.send("\r\n\r\n".encode('ascii'))
-    connection_socket.close()
-
-def send404():
-    print("\nfile not found, responding with a 404\n")
-    responseLines = "HTTP/1.1 404 Not Found\r\n"
-    responseLines += "Connection: close\r\n"
-    responseLines += "Content-Type: text/html\r\n\r\n"
-    content = open("./content/404.html", 'rb').read()
-    sendMessage(responseLines, content)
-
-while True:
-    print("\nloop start\n")
-    connection_socket, addr = server_socket.accept()
-
+#new thread for each connection
+def clientThread(connection_socket, shouldStop):
     msg1 = connection_socket.recv(buffer_size).decode('ascii')
 
     request = msg1.partition('\n')[0]
@@ -45,7 +28,8 @@ while True:
     testStop = fileRequested[-4:]
     if(testStop == "stop"):
         print("\nstop command received, breaking out of loop\n")
-        break
+        shouldStop[0] = True
+        return(0) #returning 0 will break out of the loop
 
     fileRequested = "./content/"+fileRequested
 
@@ -83,6 +67,28 @@ while True:
         sendMessage(responseLines, content)
     else:
         send404()
+
+
+def sendMessage(responseLines, content):
+    connection_socket.send(responseLines.encode('ascii'))
+    connection_socket.send(content)
+    #connection_socket.send("\r\n\r\n".encode('ascii'))
+    connection_socket.close()
+
+def send404():
+    print("\nfile not found, responding with a 404\n")
+    responseLines = "HTTP/1.1 404 Not Found\r\n"
+    responseLines += "Connection: close\r\n"
+    responseLines += "Content-Type: text/html\r\n\r\n"
+    content = open("./content/404.html", 'rb').read()
+    sendMessage(responseLines, content)
+
+while True:
+    print("\nloop start\n")
+    connection_socket, addr = server_socket.accept()
+    start_new_thread(clientThread, (connection_socket, shouldStop,))
+    if(shouldStop[0]):
+        break
 
 print("\nServer no longer running\n")
 responseLines = "HTTP/1.1 200 OK\r\n"
