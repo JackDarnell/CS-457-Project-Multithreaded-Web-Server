@@ -64,6 +64,8 @@ while True:
         contentType = "image/png"
     elif(contentType == "txt"):
         contentType = "text/plain"
+    elif(contentType == "mp4"):
+        contentType = "video/mp4"
 
 
     print("file requested: " + fileRequested)
