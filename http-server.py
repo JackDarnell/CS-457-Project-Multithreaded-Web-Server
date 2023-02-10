@@ -43,6 +43,7 @@ def clientThread(connection_socket, shouldStop, numThreads):
 
     print("\ncontent type: " + contentType)
 
+    #set the right content type for the response header
     if(contentType == "html"):
         contentType = "text/html"
     elif(contentType == "jpeg"):
