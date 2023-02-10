@@ -1,4 +1,8 @@
-#lab code, need to modify to work for the project
+
+#MULTITHREADING
+#I'm thinking one thread that constantly listens for new connections
+#and then spawns a new thread for each connection
+
 import socket, os
 
 server_ip = 'localhost'
