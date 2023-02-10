@@ -13,7 +13,8 @@ server_socket.listen()
 shouldStop = [False]
 
 #new thread for each connection
-def clientThread(connection_socket, shouldStop):
+def clientThread(connection_socket, shouldStop, numThreads):
+    print("\nnew thread started, thread number: " + str(numThreads) + "\n")
     msg1 = connection_socket.recv(buffer_size).decode('ascii')
 
     request = msg1.partition('\n')[0]
@@ -83,10 +84,11 @@ def send404():
     content = open("./content/404.html", 'rb').read()
     sendMessage(responseLines, content)
 
+numThreads = 0
 while True:
-    print("\nloop start\n")
     connection_socket, addr = server_socket.accept()
-    start_new_thread(clientThread, (connection_socket, shouldStop,))
+    numThreads += 1
+    start_new_thread(clientThread, (connection_socket, shouldStop, numThreads))
     if(shouldStop[0]):
         break
 
