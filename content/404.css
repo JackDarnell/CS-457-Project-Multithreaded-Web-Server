@@ -1,0 +1,36 @@
+/* Simple 404 Page using HTML & CSS */
+/* Author: Godnon Dsilva */
+
+/* Imported fonts */
+@import url('https://fonts.googleapis.com/css?family=Anton');
+@import url('https://fonts.googleapis.com/css?family=Open+Sans');
+
+/* CSS */
+body {
+  background-color: #ddbe90;
+
+  margin: 0;
+}
+
+
+body > main > center > p {
+  color: #ddd;
+
+}
+
+body > main > center > h1 {
+  text-transform: uppercase;
+  color: #0077ff;
+  font-size: 48px;
+}
+
+body > main > center > h3 > a {
+  text-transform: uppercase;
+  font-size: 18px;
+  color: #000000;
+  background-color: #ff0000;
+  text-decoration: none;
+  padding: 1px 5px;
+  border: 1px solid #5900ff;
+  border-radius: 5px;
+}

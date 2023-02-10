@@ -2,7 +2,7 @@
 import socket, os
 
 server_ip = 'localhost'
-server_port = 80
+server_port = 1699
 buffer_size = 1000024
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -12,7 +12,7 @@ server_socket.listen()
 def sendMessage(responseLines, content):
     connection_socket.send(responseLines.encode('ascii'))
     connection_socket.send(content)
-    connection_socket.send("\r\n\r\n".encode('ascii'))
+    #connection_socket.send("\r\n\r\n".encode('ascii'))
     connection_socket.close()
 
 def send404():
@@ -31,6 +31,10 @@ while True:
 
     request = msg1.partition('\n')[0]
     fileRequested = request.split(' ')[1]
+
+    if fileRequested == "/":
+        fileRequested = "/greeting.html"
+
     fileRequested = fileRequested.split('/', 1)[1]
 
     #if the file requested is the stop command, break out of the loop
