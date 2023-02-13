@@ -36,7 +36,6 @@ def clientThread(connection_socket, shouldStop, numThreads):
         responseLines += "Content-Type: text/html" + "\r\n\r\n"
         content = open("./content/serverDoneRunning.html", 'rb').read()
         sendMessage(responseLines, content)
-        return(0) #returning 0 will break out of the loop
     else:
 
         fileRequested = "./content/"+fileRequested
