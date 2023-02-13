@@ -1,7 +1,7 @@
 
 #written by: Jack Darnell
-import socket, os
-from _thread import *
+import socket, os, threading
+
 
 server_ip = 'localhost'
 server_port = 1699
@@ -30,45 +30,52 @@ def clientThread(connection_socket, shouldStop, numThreads):
     if(testStop == "stop"):
         print("\nstop command received, breaking out of loop\n")
         shouldStop[0] = True
-        return(0) #returning 0 will break out of the loop
-
-    fileRequested = "./content/"+fileRequested
-
-    contentType="error"
-
-    try:
-        contentType = fileRequested.split('.')[2]
-    except:
-        print("\nno content type found\n")
-
-    print("\ncontent type: " + contentType)
-
-    #set the right content type for the response header
-    if(contentType == "html"):
-        contentType = "text/html"
-    elif(contentType == "jpeg"):
-        contentType = "image/jpeg"
-    elif(contentType == "jpg"):
-        contentType = "image/jpeg"
-    elif(contentType == "png"):
-        contentType = "image/png"
-    elif(contentType == "txt"):
-        contentType = "text/plain"
-    elif(contentType == "mp4"):
-        contentType = "video/mp4"
-
-
-    print("file requested: " + fileRequested)
-
-    if(os.path.isfile(fileRequested) and contentType != "error"):
-        print("\nfile found\n")
+        print("\nServer no longer running\n")
         responseLines = "HTTP/1.1 200 OK\r\n"
         responseLines += "Connection: close\r\n"
-        responseLines += "Content-Type: " + contentType + "\r\n\r\n"
-        content = open(fileRequested, 'rb').read()
+        responseLines += "Content-Type: text/html" + "\r\n\r\n"
+        content = open("./content/serverDoneRunning.html", 'rb').read()
         sendMessage(responseLines, content)
+        return(0) #returning 0 will break out of the loop
     else:
-        send404()
+
+        fileRequested = "./content/"+fileRequested
+
+        contentType="error"
+
+        try:
+            contentType = fileRequested.split('.')[2]
+        except:
+            print("\nno content type found\n")
+
+        print("\ncontent type: " + contentType)
+
+        #set the right content type for the response header
+        if(contentType == "html"):
+            contentType = "text/html"
+        elif(contentType == "jpeg"):
+            contentType = "image/jpeg"
+        elif(contentType == "jpg"):
+            contentType = "image/jpeg"
+        elif(contentType == "png"):
+            contentType = "image/png"
+        elif(contentType == "txt"):
+            contentType = "text/plain"
+        elif(contentType == "mp4"):
+            contentType = "video/mp4"
+
+
+        print("file requested: " + fileRequested)
+
+        if(os.path.isfile(fileRequested) and contentType != "error"):
+            print("\nfile found\n")
+            responseLines = "HTTP/1.1 200 OK\r\n"
+            responseLines += "Connection: close\r\n"
+            responseLines += "Content-Type: " + contentType + "\r\n\r\n"
+            content = open(fileRequested, 'rb').read()
+            sendMessage(responseLines, content)
+        else:
+            send404()
 
 
 def sendMessage(responseLines, content):
@@ -89,14 +96,8 @@ numThreads = 0
 while True:
     connection_socket, addr = server_socket.accept()
     numThreads += 1
-    start_new_thread(clientThread, (connection_socket, shouldStop, numThreads))
+    threading.Thread(target=clientThread, args=(connection_socket, shouldStop, numThreads,)).start()
     if(shouldStop[0]):
         break
 
-print("\nServer no longer running\n")
-responseLines = "HTTP/1.1 200 OK\r\n"
-responseLines += "Connection: close\r\n"
-responseLines += "Content-Type: text/html" + "\r\n\r\n"
-content = open("./content/serverDoneRunning.html", 'rb').read()
-sendMessage(responseLines, content)
 server_socket.close()
